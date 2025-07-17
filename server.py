@@ -1,12 +1,5 @@
-#
-# Copyright (c) 2025, Daily
-#
-# SPDX-License-Identifier: BSD 2-Clause License
-#
-
 import argparse
 import json
-
 import uvicorn
 from bot_sts import run_bot
 from fastapi import FastAPI, WebSocket
@@ -23,17 +16,11 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for testing
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# @app.post("/")
-# async def start_call():
-#     print("POST TwiML")
-#     return HTMLResponse(content=open("templates/streams.xml").read(), media_type="application/xml")
 
 @app.post("/start_call/")
 async def start_call():
