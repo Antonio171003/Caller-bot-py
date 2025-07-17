@@ -1,0 +1,6 @@
+pipecat-ai[websocket, silero, google, cartesia]
+twilio
+fastapi
+uvicorn
+python-dotenv
+loguru
