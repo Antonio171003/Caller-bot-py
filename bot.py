@@ -4,7 +4,6 @@ import os
 import sys
 import wave
 import aiofiles
-from dotenv import load_dotenv
 from fastapi import WebSocket
 from loguru import logger
 from pipecat.audio.vad.silero import SileroVADAnalyzer
@@ -22,10 +21,8 @@ from pipecat.transports.network.fastapi_websocket import (
     FastAPIWebsocketTransport,
 )
 
-load_dotenv(override=True)
-
 logger.remove(0)
-logger.add(sys.stderr, level="DEBUG")
+logger.add(sys.stderr, level = "DEBUG")
 
 
 async def save_audio(server_name: str, audio: bytes, sample_rate: int, num_channels: int):
@@ -46,16 +43,16 @@ async def save_audio(server_name: str, audio: bytes, sample_rate: int, num_chann
         logger.info("No audio data to save")
 
 
-async def run_bot(websocket_client: WebSocket, stream_sid: str, testing: bool):
+async def run_bot(websocket_client: WebSocket, stream_sid: str):
     transport = FastAPIWebsocketTransport(
-        websocket=websocket_client,
+        websocket = websocket_client,
         params=FastAPIWebsocketParams(
-            audio_in_enabled=True,
-            audio_out_enabled=True,
-            add_wav_header=False,
-            vad_enabled=True,
-            vad_analyzer=SileroVADAnalyzer(),
-            vad_audio_passthrough=True,
+            audio_in_enabled = True,
+            audio_out_enabled = True,
+            add_wav_header = False,
+            vad_enabled = True,
+            vad_analyzer = SileroVADAnalyzer(),
+            vad_audio_passthrough = True,
             serializer=TwilioFrameSerializer(stream_sid),
         ),
     )
@@ -70,8 +67,8 @@ async def run_bot(websocket_client: WebSocket, stream_sid: str, testing: bool):
             no cuentes otro si no te lo piden. 
             """,
         params = GoogleLLMService.InputParams(
-            temperature=0.7,
-            max_tokens=2000
+            temperature = 0.7,
+            max_tokens = 2000
         )
     )
 
@@ -107,7 +104,7 @@ async def run_bot(websocket_client: WebSocket, stream_sid: str, testing: bool):
 
     # NOTE: Watch out! This will save all the conversation in memory. You can
     # pass `buffer_size` to get periodic callbacks.
-    audiobuffer = AudioBufferProcessor(user_continuous_stream=not testing)
+    audiobuffer = AudioBufferProcessor()
 
     pipeline = Pipeline(
         [
@@ -124,10 +121,10 @@ async def run_bot(websocket_client: WebSocket, stream_sid: str, testing: bool):
 
     task = PipelineTask(
         pipeline,
-        params=PipelineParams(
-            audio_in_sample_rate=8000,
-            audio_out_sample_rate=8000,
-            allow_interruptions=True,
+        params = PipelineParams(
+            audio_in_sample_rate = 8000,
+            audio_out_sample_rate = 8000,
+            allow_interruptions = True,
         ),
     )
 
@@ -152,6 +149,6 @@ async def run_bot(websocket_client: WebSocket, stream_sid: str, testing: bool):
     # interruptions. We use `force_gc=True` to force garbage collection after
     # the runner finishes running a task which could be useful for long running
     # applications with multiple clients connecting.
-    runner = PipelineRunner(handle_sigint=False, force_gc=True)
+    runner = PipelineRunner(handle_sigint = False, force_gc = True)
 
     await runner.run(task)

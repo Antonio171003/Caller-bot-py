@@ -4,7 +4,6 @@ import os
 import sys
 import wave
 import aiofiles
-from dotenv import load_dotenv
 from fastapi import WebSocket
 from loguru import logger
 from pipecat.audio.vad.silero import SileroVADAnalyzer
@@ -25,10 +24,8 @@ from pipecat.services.gemini_multimodal_live.gemini import (
 )
 from pipecat.transcriptions.language import Language
 
-load_dotenv(override=True)
-
 logger.remove(0)
-logger.add(sys.stderr, level="DEBUG")
+logger.add(sys.stderr, level = "DEBUG")
 
 
 async def save_audio(server_name: str, audio: bytes, sample_rate: int, num_channels: int):
@@ -49,29 +46,29 @@ async def save_audio(server_name: str, audio: bytes, sample_rate: int, num_chann
         logger.info("No audio data to save")
 
 
-async def run_bot(websocket_client: WebSocket, stream_sid: str, testing: bool):
+async def run_bot(websocket_client: WebSocket, stream_sid: str):
     transport = FastAPIWebsocketTransport(
-        websocket=websocket_client,
+        websocket = websocket_client,
         params=FastAPIWebsocketParams(
-            audio_in_enabled=True,
-            audio_out_enabled=True,
-            add_wav_header=False,
-            vad_enabled=True,
-            vad_analyzer=SileroVADAnalyzer(),
-            vad_audio_passthrough=True,
-            serializer=TwilioFrameSerializer(stream_sid),
+            audio_in_enabled = True,
+            audio_out_enabled = True,
+            add_wav_header = False,
+            vad_enabled = True,
+            vad_analyzer = SileroVADAnalyzer(),
+            vad_audio_passthrough = True,
+            serializer = TwilioFrameSerializer(stream_sid),
         ),
     )
 
     llm = GeminiMultimodalLiveLLMService(
         api_key=os.getenv("GOOGLE_API_KEY"),
-        voice_id="Puck",  # puedes elegir Aoede, Charon, Fenrir, Kore, Puck
+        voice_id="Puck",  # Select into Aoede, Charon, Fenrir, Kore, Puck
         params=InputParams(
             temperature = 0.7,
             language = Language.ES,
             modalities = GeminiMultimodalModalities.AUDIO
         ),
-        system_instruction="""
+        system_instruction = """
             Eres un cómico que cuenta chistes cortos de humor blanco en español;
             no expliques el chiste si no te lo piden.
         """
@@ -93,7 +90,7 @@ async def run_bot(websocket_client: WebSocket, stream_sid: str, testing: bool):
 
     # NOTE: Watch out! This will save all the conversation in memory. You can
     # pass `buffer_size` to get periodic callbacks.
-    audiobuffer = AudioBufferProcessor(user_continuous_stream=not testing)
+    audiobuffer = AudioBufferProcessor()
 
     pipeline = Pipeline(
         [
@@ -108,10 +105,10 @@ async def run_bot(websocket_client: WebSocket, stream_sid: str, testing: bool):
 
     task = PipelineTask(
         pipeline,
-        params=PipelineParams(
-            audio_in_sample_rate=8000,
-            audio_out_sample_rate=8000,
-            allow_interruptions=True,
+        params = PipelineParams(
+            audio_in_sample_rate = 8000,
+            audio_out_sample_rate = 8000,
+            allow_interruptions = True,
         ),
     )
 
@@ -132,6 +129,6 @@ async def run_bot(websocket_client: WebSocket, stream_sid: str, testing: bool):
         server_name = f"server_{websocket_client.client.port}"
         await save_audio(server_name, audio, sample_rate, num_channels)
 
-    runner = PipelineRunner(handle_sigint=False, force_gc=True)
+    runner = PipelineRunner(handle_sigint = False, force_gc = True)
 
     await runner.run(task)
